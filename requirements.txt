@@ -1,0 +1,18 @@
+# Core LangChain
+langchain
+langchain-community
+langchain-huggingface
+
+# PDF Processing
+pypdf
+
+# Vector Database & Embeddings
+faiss-cpu
+sentence-transformers
+
+# Google Gemini Integration
+langchain-google-genai
+google-generativeai
+
+# Optional: For environment variables
+python-dotenv
