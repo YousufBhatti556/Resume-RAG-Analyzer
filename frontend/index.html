@@ -164,44 +164,15 @@
   <body>
     <div class="card">
       <div>
-        <h1>Resume RAG Analyzer</h1>
-        <div class="sub">Compare your resume against a job description using RAG.</div>
-
-        <form id="auth-form">
-          <div style="margin-top: 16px; margin-bottom: 12px">
-            <label>Authentication</label>
-            <div class="hint">
-              Pehle account banao (signup), phir login karo. Token UI khud handle
-              karega.
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+          <div>
+            <h1>Resume RAG Analyzer</h1>
+            <div class="sub">Compare your resume against a job description using RAG.</div>
           </div>
-
-          <div style="display: flex; gap: 8px; margin-bottom: 10px">
-            <input
-              type="email"
-              id="auth-email"
-              placeholder="Email"
-              required
-            />
-            <input
-              type="password"
-              id="auth-password"
-              placeholder="Password (min 8 chars)"
-              required
-            />
-          </div>
-
-          <div class="btn-row" style="margin-top: 4px">
-            <button type="button" id="signup-btn">Signup</button>
-            <button type="button" id="login-btn">Login</button>
-            <div class="status" id="auth-status-text"></div>
-          </div>
-
-          <div class="hint" style="margin-top: 6px">
-            Login hone ke baad token automatically store ho jayega aur analysis
-            requests mein use hoga.
-          </div>
-        </form>
+          <button type="button" id="logout-btn" style="margin-top: 0; padding: 8px 16px; font-size: 0.85rem; background: #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);">
+            Logout
+          </button>
+        </div>
 
         <form id="analyze-form" style="margin-top: 18px">
           <div style="margin-top: 18px">
@@ -231,7 +202,7 @@
               <span>Analyze Resume</span>
             </button>
             <div class="status" id="status-text">
-              Backend: http://127.0.0.1:8000 (login required)
+              Ready to analyze
             </div>
           </div>
         </form>
@@ -257,97 +228,43 @@
     </div>
 
     <script>
-      const authForm = document.getElementById("auth-form");
+      const API_BASE = "http://127.0.0.1:8000";
+
+      // Authentication check - redirect to login if not authenticated
+      function checkAuth() {
+        const token = localStorage.getItem("jwt_token");
+        if (!token) {
+          window.location.href = "login.html";
+          return false;
+        }
+        return true;
+      }
+
+      // Logout function
+      function logout() {
+        localStorage.removeItem("jwt_token");
+        window.location.href = "login.html";
+      }
+
+      // Initialize - check auth on page load
+      if (!checkAuth()) {
+        // Redirecting, stop execution
+        throw new Error("Not authenticated");
+      }
+
       const analyzeForm = document.getElementById("analyze-form");
       const resultBox = document.getElementById("result-box");
       const statusText = document.getElementById("status-text");
       const submitBtn = document.getElementById("submit-btn");
-      const authStatusText = document.getElementById("auth-status-text");
-      const signupBtn = document.getElementById("signup-btn");
-      const loginBtn = document.getElementById("login-btn");
-
-      const API_BASE = "http://127.0.0.1:8000";
-
-      function setToken(token) {
-        if (token) {
-          localStorage.setItem("jwt_token", token);
-          authStatusText.textContent = "Logged in ✔";
-        } else {
-          localStorage.removeItem("jwt_token");
-          authStatusText.textContent = "";
-        }
-      }
+      const logoutBtn = document.getElementById("logout-btn");
 
       function getToken() {
         return localStorage.getItem("jwt_token") || "";
       }
 
-      signupBtn.addEventListener("click", async () => {
-        const email = document.getElementById("auth-email").value.trim();
-        const password = document.getElementById("auth-password").value.trim();
-        if (!email || !password) return;
-
-        signupBtn.disabled = true;
-        loginBtn.disabled = true;
-        authStatusText.textContent = "Signing up…";
-        try {
-          const resp = await fetch(API_BASE + "/auth/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await resp.json().catch(() => ({}));
-          if (!resp.ok) {
-            throw new Error(data.detail || "Signup failed");
-          }
-          if (data.access_token) {
-            setToken(data.access_token);
-          }
-          authStatusText.textContent = "Signup successful, logged in ✔";
-        } catch (err) {
-          let errorMsg = err.message || String(err);
-          if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
-            errorMsg = "Backend connection failed. Make sure backend is running at http://127.0.0.1:8000";
-          }
-          authStatusText.textContent = "Signup error: " + errorMsg;
-        } finally {
-          signupBtn.disabled = false;
-          loginBtn.disabled = false;
-        }
-      });
-
-      loginBtn.addEventListener("click", async () => {
-        const email = document.getElementById("auth-email").value.trim();
-        const password = document.getElementById("auth-password").value.trim();
-        if (!email || !password) return;
-
-        signupBtn.disabled = true;
-        loginBtn.disabled = true;
-        authStatusText.textContent = "Logging in…";
-        try {
-          const resp = await fetch(API_BASE + "/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await resp.json().catch(() => ({}));
-          if (!resp.ok) {
-            throw new Error(data.detail || "Login failed");
-          }
-          if (data.access_token) {
-            setToken(data.access_token);
-          }
-          authStatusText.textContent = "Login successful ✔";
-        } catch (err) {
-          let errorMsg = err.message || String(err);
-          if (errorMsg.includes("Failed to fetch") || errorMsg.includes("NetworkError")) {
-            errorMsg = "Backend connection failed. Make sure backend is running at http://127.0.0.1:8000";
-          }
-          authStatusText.textContent = "Login error: " + errorMsg;
-        } finally {
-          signupBtn.disabled = false;
-          loginBtn.disabled = false;
-        }
+      // Logout button handler
+      logoutBtn.addEventListener("click", () => {
+        logout();
       });
 
       analyzeForm.addEventListener("submit", async (e) => {
