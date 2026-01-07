@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 from backend.database.deps import get_db
 from backend.database.models import User
 from backend.utils.security import hash_password, verify_password
@@ -11,11 +11,12 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 # Pydantic schemas
 class UserSignup(BaseModel):
     email: EmailStr
-    password: str
+    # Enforce reasonable length without bcrypt's 72-byte limit
+    password: constr(min_length=8, max_length=128)
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: constr(min_length=8, max_length=128)
 
 class TokenResponse(BaseModel):
     access_token: str

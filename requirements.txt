@@ -2,6 +2,7 @@
 langchain
 langchain-community
 langchain-huggingface
+langchain-classic
 
 # PDF Processing
 pypdf
@@ -16,3 +17,16 @@ google-generativeai
 
 # Optional: For environment variables
 python-dotenv
+
+# API & Web
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Database
+sqlalchemy
+
+# Auth & Security
+passlib
+python-jose[cryptography]
+pydantic-settings

@@ -2,14 +2,18 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+
+from backend.auth.jwt_handler import ALGORITHM, _ensure_secret
 from backend.database.deps import get_db
 from backend.database.models import User
-from backend.auth.jwt_handler import SECRET_KEY, ALGORITHM
 
 # Ye line batati hai ke token kahan se uthana hai (Login route se)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+
+def get_current_user(
+    token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -17,7 +21,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         # Token ko decode karo
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        secret = _ensure_secret()
+        payload = jwt.decode(token, secret, algorithms=[ALGORITHM])
         user_id: str = payload.get("user_id")
         if user_id is None:
             raise credentials_exception
@@ -28,5 +33,5 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise credentials_exception
-    
+
     return user
