@@ -32,14 +32,14 @@ class JobDescription(Base):
     description_text = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 4. AnalysisResult Table (RAG ka final result/score save karne ke liye)
+
 class AnalysisResult(Base):
     __tablename__ = "analysis_results"
 
     id = Column(Integer, primary_key=True, index=True)
     resume_id = Column(Integer, ForeignKey("resumes.id"))
-    match_score = Column(Float) # 0 to 100 percentage
-    analysis_report = Column(Text) # Gemini ka detailed feedback
+    match_score = Column(Float) 
+    analysis_report = Column(Text) 
     missing_skills = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
